@@ -1,0 +1,82 @@
+FROM fms-dev-base:latest
+
+# ------------------------------------------------------------
+# Install Valhalla
+
+RUN git clone --recurse-submodules https://github.com/valhalla/valhalla && \
+    cd valhalla && \
+    cat cat scripts/install-linux-deps.sh | sed 's/sudo//' >> scripts/install-linux-deps-docker.sh && \
+    chmod +x scripts/install-linux-deps-docker.sh && \
+    ./scripts/install-linux-deps-docker.sh && \
+    cmake -B build -DCMAKE_BUILD_TYPE=Release && \
+    make -C build -j$(nproc) && \
+    make -C build install
+
+RUN rm -r /tmp/valhalla
+
+# Build config
+RUN mkdir -p /opt/valhalla/valhalla_tiles && cd /opt/valhalla &&  \
+    valhalla_build_config --mjolnir-tile-dir ${PWD}/valhalla_tiles \
+    --mjolnir-tile-extract ${PWD}/valhalla_tiles.tar \
+    --mjolnir-timezone ${PWD}/valhalla_tiles/timezones.sqlite \
+    --mjolnir-admin ${PWD}/valhalla_tiles/admins.sqlite > valhalla.json
+
+# Update valhalla config file
+RUN sed -i 's/"allow_verbose": false/"allow_verbose": true/g' /opt/valhalla/valhalla.json  # Make status page verbose
+
+# Download map files
+ENV files_to_download="https://download.bbbike.org/osm/bbbike/Sydney/Sydney.osm.pbf \
+                       https://download.geofabrik.de/europe/liechtenstein-latest.osm.pbf"
+ENV osm_filenames="Sydney.osm.pbf liechtenstein-latest.osm.pbf"
+
+RUN  cd /opt/valhalla && \
+    for file in ${files_to_download}; do \
+    wget "${file}"; \
+    done;
+
+# Build tiles
+RUN cd /opt/valhalla && \
+    valhalla_build_timezones > valhalla_tiles/timezones.sqlite && \
+    valhalla_build_admins -c valhalla.json ${osm_filenames} && \
+    valhalla_build_tiles -c valhalla.json ${osm_filenames} && \
+    valhalla_build_extract -c valhalla.json -v;
+
+# Build elevation tiles
+RUN cd /opt/valhalla && \
+    valhalla_build_elevation -t -c valhalla.json -p $(nproc)
+
+
+# ------------------------------------------------------------
+# Install CPR (cpp http request library)
+
+RUN git clone https://github.com/libcpr/cpr.git && \
+    cd cpr && \
+    mkdir build && \
+    cd build && \
+    cmake .. -DCPR_USE_SYSTEM_CURL=ON && \
+    cmake --build . --parallel && \
+    cmake --install .
+RUN rm -r cpr
+
+# ------------------------------------------------------------
+# Install libosmium dependencies
+
+RUN apt update && apt install -y \
+    libbz2-dev \
+    libprotozero-dev \
+    libexpat1-dev \
+    zlib1g-dev
+
+# ------------------------------------------------------------
+# Install GTest
+
+RUN git clone https://github.com/google/googletest.git -b v1.15.2 && \
+    cd googletest && \
+    mkdir build && \
+    cd build && \
+    cmake .. -DBUILD_GMOCK=OFF && \
+    make && \
+    make install
+
+RUN rm -r googletest
+

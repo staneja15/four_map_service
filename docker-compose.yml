@@ -1,0 +1,8 @@
+services:
+  fms:
+    image: fms-dev:latest
+    working_dir: "/opt/four_map_service"
+    privileged: true
+    volumes:
+      - ./:/opt/four_map_service
+
