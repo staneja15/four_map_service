@@ -45,6 +45,7 @@ RUN cd /opt/valhalla && \
 RUN cd /opt/valhalla && \
     valhalla_build_elevation -t -c valhalla.json -p $(nproc)
 
+RUN ldconfig
 
 # ------------------------------------------------------------
 # Install CPR (cpp http request library)
@@ -80,3 +81,5 @@ RUN git clone https://github.com/google/googletest.git -b v1.15.2 && \
 
 RUN rm -r googletest
 
+
+RUN apt update && apt install -y libfmt-dev
