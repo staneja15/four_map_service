@@ -26,6 +26,30 @@ namespace fms {
         }
     }
 
+    void Requests::download_all_maps(const std::filesystem::path& data_path, const float chunk_width_degrees, const std::uint32_t chunk_width_units, const bool overwrite_data) {
+        start_service();
+
+        for (const auto& map_bounds : get_bounds()) {
+            MapGenerationInfo map_info = {
+                .bounds = map_bounds,
+                .chunk_width_degrees = chunk_width_degrees,  // 1 degrees lat/lon per chunk
+                .width = chunk_width_units                   // 100 total units within the chunk
+            };
+
+            if (exists(data_path / map_bounds.to_string()) && !overwrite_data) {
+                // Early exist if map data is already present and `overwrite_data` is set to `false`
+                continue;
+            }
+
+            std::vector<Chunk> chunks = get_elevation(map_info);
+
+            for (const auto& chunk : chunks) {
+                auto path = data_path / map_bounds.to_string();
+                chunk.write_elevation_data(path, overwrite_data);
+            }
+        }
+    }
+
     /// Requests elevation information from valhalla based on the map generation info provided in the parameters list.
     std::vector<Chunk> Requests::get_elevation(const MapGenerationInfo& map_gen_info) {
         constexpr double error = 0.01;

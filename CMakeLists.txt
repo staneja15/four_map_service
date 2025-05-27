@@ -59,20 +59,25 @@ target_include_directories(
     ${FMS_ROOT_DIR}
 )
 
-# Create the shared object file
+# Create the map service library
 add_library(
     four_map_service
-    SHARED
-    main.cpp
+    INTERFACE
 )
 
 target_link_libraries(
     four_map_service
-    PUBLIC
+    INTERFACE
     file_system
     file_reader
     requests
     utils
+)
+
+target_include_directories(
+    four_map_service
+    INTERFACE
+    ${FMS_ROOT_DIR}
 )
 
 add_library(four::map_service ALIAS four_map_service)

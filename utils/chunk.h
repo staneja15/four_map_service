@@ -47,10 +47,10 @@ namespace fms {
 
         /// Writes the elevation data of the chunk to the designated folder given in the path parameter.
         /// Path: A folder to store the height data
-        void write_elevation_data(const std::filesystem::path& path) const {
+        void write_elevation_data(const std::filesystem::path& path, const bool overwrite_data) const {
             const auto filename = std::filesystem::path(static_cast<std::string>(path / bounds.to_string()) + ".dat");
 
-            if (exists(filename)) {
+            if (exists(filename) && !overwrite_data) {
                 // File is already loaded
                 return;
             }

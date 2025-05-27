@@ -11,6 +11,8 @@ namespace fms {
     public:
         static void start_service();
 
+        static void download_all_maps(const std::filesystem::path& data_path, float chunk_width_degrees, std::uint32_t chunk_width_units, bool overwrite_data=false);
+
         static std::vector<Chunk> get_elevation(const MapGenerationInfo& map_gen_info);
 
         static std::vector<Bounds> get_bounds();
