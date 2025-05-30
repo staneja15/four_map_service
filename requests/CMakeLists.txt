@@ -17,5 +17,5 @@ target_link_libraries(
     PRIVATE
     cpr::cpr
 
-    utils
+    fms_utils
 )

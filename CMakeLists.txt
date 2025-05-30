@@ -67,7 +67,7 @@ target_link_libraries(
     file_system
     file_reader
     requests
-    utils
+    fms_utils
 )
 
 target_include_directories(

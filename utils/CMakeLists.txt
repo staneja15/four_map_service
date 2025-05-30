@@ -1,4 +1,4 @@
-set(target utils)
+set(target fms_utils)
 
 add_library(
     ${target}
