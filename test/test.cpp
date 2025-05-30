@@ -6,7 +6,8 @@
 
 using namespace fms;
 
-TEST(basic, test) {
+/// Reads all map files in the OSM_FILES dir using libosmium
+TEST(requests, read_map_files) {
     const std::vector<std::filesystem::path> files = get_osm_files();
     for (const auto& file : files) {
         auto fr = FileReader(file);
@@ -14,16 +15,3 @@ TEST(basic, test) {
         break;
     }
 }
-
-TEST(requests, elevation) {
-    // Test that we can successfully request elevation data for a given bounds
-    Requests::download_all_maps("/opt/four_map_service/data/");
-}
-
-TEST(requests, read_elevation_data) {
-    float f;
-    std::ifstream fin ("/opt/four_map_service/data/height.dat", std::ifstream::binary);
-    while (fin.read(reinterpret_cast<char*>(&f), sizeof(float)))
-        std::cout << f << '\n';
-};
-

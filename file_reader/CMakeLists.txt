@@ -6,15 +6,14 @@ add_library(
     cpp/file_reader.cpp
 )
 
+target_include_directories(
+    ${target}
+    PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+)
+
 target_link_libraries(
     ${target}
     PUBLIC
     osmium_dependencies
-)
-
-target_include_directories(
-    ${target}
-    PRIVATE
-    ${FMS_ROOT_DIR}
-    ${FMS_ROOT_DIR}/extern
 )

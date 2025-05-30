@@ -9,5 +9,5 @@ add_library(
 target_include_directories(
     ${target}
     PRIVATE
-    ${FMS_ROOT_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}
 )

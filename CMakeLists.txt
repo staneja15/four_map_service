@@ -1,5 +1,3 @@
-set(FMS_ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
-
 # CPR dependencies
 find_package(cpr)
 find_package(OpenSSL REQUIRED)
@@ -31,6 +29,10 @@ find_package(fmt REQUIRED)
 # Google Test
 find_package(GTest REQUIRED)
 
+# Add global includes
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/extern)
+
 # Add project sub directories
 add_subdirectory(file_system)
 add_subdirectory(file_reader)
@@ -51,12 +53,6 @@ target_link_libraries(
     file_system
     file_reader
     requests
-)
-
-target_include_directories(
-    test_four_map_service
-    PRIVATE
-    ${FMS_ROOT_DIR}
 )
 
 # Create the map service library

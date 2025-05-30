@@ -1,6 +1,6 @@
 #pragma once
 
-#include "requests/map_generation.h"
+#include "map_generation.h"
 #include "utils/bounds.h"
 #include "utils/chunk.h"
 

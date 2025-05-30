@@ -9,8 +9,7 @@ add_library(
 target_include_directories(
     ${target}
     PRIVATE
-    ${FMS_ROOT_DIR}
-    ${FMS_ROOT_DIR}/extern
+    ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
 target_link_libraries(
