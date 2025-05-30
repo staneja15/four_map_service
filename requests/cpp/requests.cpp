@@ -33,7 +33,7 @@ namespace fms {
             MapGenerationInfo map_info = {
                 .bounds = map_bounds,
                 .chunk_width_degrees = chunk_width_degrees,  // 1 degrees lat/lon per chunk
-                .width = chunk_width_units                   // 100 total units within the chunk
+                .width = chunk_width_units
             };
 
             if (exists(data_path / map_bounds.to_string()) && !overwrite_data) {

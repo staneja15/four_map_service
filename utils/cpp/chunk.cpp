@@ -19,20 +19,19 @@ namespace fms {
         const auto lon_unit_size = lon_diff / width;
         const auto lat_unit_size = lat_diff / width;
 
-        constexpr double error = 0.01;
+        constexpr double error = 0.001;
         std::vector<Coordinates> coordinates = {};
         coordinates.reserve(width * width);
 
         // Generate all the chunk positions based on the chunks bounds and width
-        double lon = bounds.min.lon;
-        while (lon < bounds.max.lon - error) {
-            double lat = bounds.min.lat;
-            while (lat < bounds.max.lat - error) {
+        double lat = bounds.min.lat;
+        while (lat < bounds.max.lat - error) {
+            double lon = bounds.min.lon;
+            while (lon < bounds.max.lon - error) {
                 coordinates.emplace_back(lon, lat);
-
-                lat += lat_unit_size;
+                lon += lon_unit_size;
             }
-            lon += lon_unit_size;
+            lat += lat_unit_size;
         }
 
         return coordinates;

@@ -73,7 +73,7 @@ target_link_libraries(
 target_include_directories(
     four_map_service
     INTERFACE
-    ${FMS_ROOT_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
 add_library(four::map_service ALIAS four_map_service)

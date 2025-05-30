@@ -10,7 +10,7 @@ namespace fms {
         std::uint32_t width;                       // width of the chunk
         std::vector<float> height_data;
 
-        explicit Chunk(const std::uint32_t chunk_width, const Bounds& chunk_bounds);
+        explicit Chunk(std::uint32_t chunk_width, const Bounds& chunk_bounds);
 
         [[nodiscard]] std::vector<Coordinates> generate_chunk_coordinates() const;
 
