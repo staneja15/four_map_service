@@ -1,6 +1,6 @@
 #pragma once
 
-#include "bounds.h"
+#include "utils/bounds.h"
 
 #include <filesystem>
 
@@ -12,8 +12,12 @@ namespace fms {
 
         explicit Chunk(std::uint32_t chunk_width, const Bounds& chunk_bounds);
 
+        explicit Chunk(const std::filesystem::path& file_path);
+
         [[nodiscard]] std::vector<Coordinates> generate_chunk_coordinates() const;
 
-        void write_elevation_data(const std::filesystem::path& path, const bool overwrite_data) const;
+        void write_elevation_data(const std::filesystem::path& path, bool overwrite_data) const;
+
+        void read_elevation_data(const std::filesystem::path& path);
     };
 }

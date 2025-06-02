@@ -4,7 +4,6 @@ add_library(
     ${target}
     STATIC
     cpp/bounds.cpp
-    cpp/chunk.cpp
     cpp/coordinates.cpp
 )
 

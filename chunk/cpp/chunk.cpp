@@ -5,12 +5,28 @@
 
 #include <fmt/format.h>
 
+/*
+ *  Chunk Rules:
+ *      1. The size of the units within a chunk will always be width * width (meaning it is a square)
+ *          - Therefore, a chunks width can be determined by obtaining the square root of the number of units in a chunk
+ */
+
 namespace fms {
     Chunk::Chunk(const std::uint32_t chunk_width, const Bounds& chunk_bounds)
             : bounds(chunk_bounds)
             , width(chunk_width)
     {
         height_data.reserve(width * width);
+    }
+
+    /// Loads the chunk data directly from a file
+    Chunk::Chunk(const std::filesystem::path& file_path) {
+        const std::string filename = file_path.stem().c_str();
+
+        read_elevation_data(file_path);
+
+        width = static_cast<std::uint32_t>(std::sqrt(height_data.size()));
+        bounds = Bounds(filename);
     }
 
     /// Generates all the chunk positions in lon/lat format
@@ -43,7 +59,6 @@ namespace fms {
         const auto filename = std::filesystem::path(static_cast<std::string>(path / bounds.to_string()) + ".dat");
 
         if (exists(filename) && !overwrite_data) {
-            // File is already loaded && we have been told not to overwrite the data if it does exist.
             return;
         }
 
@@ -55,5 +70,14 @@ namespace fms {
         std::ofstream output (filename, std::ios::out | std::ios::binary);
         output.write(reinterpret_cast<const char*>(height_data.data()), sizeof(float) * height_data.size());
         output.close();
+    }
+
+    /// Reads elevation data from a specified file path and stores it in the .height_data member
+    void Chunk::read_elevation_data(const std::filesystem::path& path) {
+        float f;
+        std::ifstream fin (path, std::ifstream::binary);
+        while (fin.read(reinterpret_cast<char*>(&f), sizeof(float))) {
+            height_data.emplace_back(f);
+        }
     }
 }  //namespace fms

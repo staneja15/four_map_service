@@ -56,21 +56,20 @@ namespace fms {
         std::vector<Chunk> chunks = {};
 
         // Create N chunks based on the number of "chunk widths" that will fit inside the given bounds.
-        double lon = map_gen_info.bounds.min.lon;
-        while (lon < map_gen_info.bounds.max.lon - error) {
+        double lat = map_gen_info.bounds.min.lat;
+        while (lat < map_gen_info.bounds.max.lat - error) {
 
-            double lat = map_gen_info.bounds.min.lat;
-            while (lat < map_gen_info.bounds.max.lat - error) {
-
+            double lon = map_gen_info.bounds.min.lon;
+            while (lon < map_gen_info.bounds.max.lon - error) {
                 // Create the chunk
                 const auto bounds_min = Coordinates(lon, lat);
                 const auto bounds_max = Coordinates(lon + map_gen_info.chunk_width_degrees, lat + map_gen_info.chunk_width_degrees);
                 auto bounds = Bounds(std::vector<Coordinates>{bounds_min, bounds_max});
                 chunks.emplace_back(map_gen_info.width, bounds);
 
-                lat += map_gen_info.chunk_width_degrees;
+                lon += map_gen_info.chunk_width_degrees;
             }
-            lon += map_gen_info.chunk_width_degrees;
+            lat += map_gen_info.chunk_width_degrees;
         }
 
         // Request the height data for each chunk

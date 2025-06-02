@@ -34,6 +34,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/extern)
 
 # Add project sub directories
+add_subdirectory(chunk)
 add_subdirectory(file_system)
 add_subdirectory(file_reader)
 add_subdirectory(requests)

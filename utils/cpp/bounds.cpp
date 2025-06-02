@@ -1,5 +1,7 @@
 #include "bounds.h"
 
+#include <regex>
+
 #include <fmt/format.h>
 
 namespace fms {
@@ -10,6 +12,10 @@ namespace fms {
         }
     }
 
+    Bounds::Bounds(const std::string& bounds_string) {
+        bounds_from_string(bounds_string);
+    }
+
     /// Updates the bounds if the given coordinates are less than the current min or greater than the current max
     void Bounds::update_bounds(const Coordinates& coords) {
         const auto [lon, lat] = coords;
@@ -17,6 +23,22 @@ namespace fms {
         min.lat = std::min(min.lat, lat);
         max.lon = std::max(max.lon, lon);
         max.lat = std::max(max.lat, lat);
+    }
+
+    void Bounds::bounds_from_string(const std::string& bounds_string) {
+        std::smatch base_match;
+        const std::regex pattern("(-?[0-9]+.[0-9]+)_(-?[0-9]+.[0-9]+)_(-?[0-9]+.[0-9]+)_(-?[0-9]+.[0-9]+)");
+        std::regex_match(bounds_string, base_match, pattern);
+
+        // base_match often has empty strings, making the size larger than the number of matches
+        // base_match[0] is the entire string, and subsequent populated strings are the matches
+        // we expect 4 matches, one for each bound
+        if (base_match.size() >= 5) {
+            min.lon = std::stod(base_match[1]);
+            min.lat = std::stod(base_match[2]);
+            max.lon = std::stod(base_match[3]);
+            max.lat = std::stod(base_match[4]);
+        }
     }
 
     /// Returns the max - min of each the latitude and the longitude in the form of a Coordinate

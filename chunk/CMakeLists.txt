@@ -1,9 +1,10 @@
-set(target requests)
+set(target chunk)
 
 add_library(
     ${target}
     STATIC
-    cpp/requests.cpp
+    cpp/chunk.cpp
+    cpp/chunk_manager.cpp
 )
 
 target_include_directories(
@@ -14,9 +15,6 @@ target_include_directories(
 
 target_link_libraries(
     ${target}
-    PRIVATE
-    cpr::cpr
-
-    chunk
+    PUBLIC
     fms_utils
 )

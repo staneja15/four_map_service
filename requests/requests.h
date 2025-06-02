@@ -2,7 +2,7 @@
 
 #include "map_generation.h"
 #include "utils/bounds.h"
-#include "utils/chunk.h"
+#include "chunk/chunk.h"
 
 #include <cpr/cpr.h>
 
