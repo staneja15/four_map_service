@@ -35,7 +35,6 @@ namespace fms {
         const auto lon_unit_size = lon_diff / width;
         const auto lat_unit_size = lat_diff / width;
 
-        constexpr double error = 0.001;
         std::vector<Coordinates> coordinates = {};
         coordinates.reserve(width * width);
 

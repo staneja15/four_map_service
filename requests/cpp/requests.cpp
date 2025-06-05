@@ -32,8 +32,9 @@ namespace fms {
         for (const auto& map_bounds : get_bounds()) {
             MapGenerationInfo map_info = {
                 .bounds = map_bounds,
-                .chunk_width_degrees = chunk_width_degrees,  // 1 degrees lat/lon per chunk
-                .width = chunk_width_units
+                .chunk_width_degrees = chunk_width_degrees,
+                .width = chunk_width_units,
+                .padding = true
             };
 
             if (exists(data_path / map_bounds.to_string()) && !overwrite_data) {
@@ -52,8 +53,13 @@ namespace fms {
 
     /// Requests elevation information from valhalla based on the map generation info provided in the parameters list.
     std::vector<Chunk> Requests::get_elevation(const MapGenerationInfo& map_gen_info) {
-        constexpr double error = 0.01;
+        constexpr double error = Chunk::error;
         std::vector<Chunk> chunks = {};
+
+        float one_unit = 0.0f;
+        if (map_gen_info.padding) {
+            one_unit = map_gen_info.chunk_width_degrees / static_cast<float>(map_gen_info.width);
+        }
 
         // Create N chunks based on the number of "chunk widths" that will fit inside the given bounds.
         double lat = map_gen_info.bounds.min.lat;
@@ -63,7 +69,7 @@ namespace fms {
             while (lon < map_gen_info.bounds.max.lon - error) {
                 // Create the chunk
                 const auto bounds_min = Coordinates(lon, lat);
-                const auto bounds_max = Coordinates(lon + map_gen_info.chunk_width_degrees, lat + map_gen_info.chunk_width_degrees);
+                const auto bounds_max = Coordinates(lon + map_gen_info.chunk_width_degrees + one_unit, lat + map_gen_info.chunk_width_degrees + one_unit);
                 auto bounds = Bounds(std::vector<Coordinates>{bounds_min, bounds_max});
                 chunks.emplace_back(map_gen_info.width, bounds);
 

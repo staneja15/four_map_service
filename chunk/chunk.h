@@ -9,6 +9,7 @@ namespace fms {
         Bounds bounds;                             // chunk bounds
         std::uint32_t width;                       // width of the chunk
         std::vector<float> height_data;
+        static constexpr double error =  0.0001;
 
         explicit Chunk(std::uint32_t chunk_width, const Bounds& chunk_bounds);
 
