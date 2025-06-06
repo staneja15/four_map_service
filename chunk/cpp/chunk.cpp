@@ -79,4 +79,23 @@ namespace fms {
             height_data.emplace_back(f);
         }
     }
+
+    /// Calculate the bottom left coordinates of the current chunk
+    Coordinates Chunk::get_chunk_origin(Coordinates& position, const float chunk_width_degrees) {
+        // Negative values must be altered to calculate this function correctly.
+        if (position.lon < 0) {
+            position.lon -= chunk_width_degrees;
+        }
+        if (position.lat < 0) {
+            position.lat -= chunk_width_degrees;
+        }
+
+        const auto lon_remainder = std::fmod(position.lon, chunk_width_degrees);
+        const auto lat_remainder = std::fmod(position.lat, chunk_width_degrees);
+
+        return {
+            position.lon - lon_remainder,
+            position.lat - lat_remainder
+        };
+    }
 }  //namespace fms

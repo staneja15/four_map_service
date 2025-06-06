@@ -7,8 +7,8 @@
 
 namespace fms {
     struct Bounds {
-        Coordinates min = { 180,  90};  // Set to the maximum lat/lon by default so they are always replaced with a < comparison
-        Coordinates max = {-180, -90};  // Set to the minimum lat/lon by default so they are always replaced with a > comparison
+        mutable Coordinates min = { 180,  90};
+        mutable Coordinates max = {-180, -90};
 
         Bounds() = default;
 
@@ -20,8 +20,12 @@ namespace fms {
 
         void bounds_from_string(const std::string& bounds_string);
 
+        bool operator>=(const Bounds& other) const;
+
         [[nodiscard]] Coordinates get_diffs() const;
 
         [[nodiscard]] std::string to_string() const;
+
+        void print();
     };
 }

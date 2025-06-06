@@ -14,5 +14,17 @@ namespace fms {
 
         /// Expects the Coordinate pair to be in the format of {longitude, latitude}
         explicit Coordinates(const std::pair<longitude, latitude>& coords);
+
+        bool operator==(const Coordinates& other) const;
+
+        bool operator!=(const Coordinates& other) const;
+
+        Coordinates operator-(const Coordinates& other) const;
+
+        Coordinates operator-(double other) const;
+
+        Coordinates operator+(const Coordinates& other) const;
+
+        Coordinates operator+(double other) const;
     };
 }  // namespace fms

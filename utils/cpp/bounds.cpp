@@ -3,6 +3,7 @@
 #include <regex>
 
 #include <fmt/format.h>
+#include <iostream>
 
 namespace fms {
     Bounds::Bounds(const std::vector<Coordinates>& coords_vec) {
@@ -41,6 +42,14 @@ namespace fms {
         }
     }
 
+    /// Returns true if all values of other bounds is within or equal to this bounds
+    bool Bounds::operator>=(const Bounds& other) const {
+        return min.lon <= other.min.lon
+            && min.lat <= other.min.lat
+            && max.lon >= other.max.lon
+            && max.lat >= other.max.lat;
+    }
+
     /// Returns the max - min of each the latitude and the longitude in the form of a Coordinate
     Coordinates Bounds::get_diffs() const {
         return {max.lon - min.lon, max.lat - min.lat};
@@ -50,5 +59,9 @@ namespace fms {
     /// This is useful when writing to files or using as a key
     std::string Bounds::to_string() const {
         return fmt::format("{:.2f}_{:.2f}_{:.2f}_{:.2f}", min.lon, min.lat, max.lon, max.lat);
+    }
+
+    void Bounds::print() {
+        std::cout << to_string() << "\n";
     }
 }  // namespace fms
