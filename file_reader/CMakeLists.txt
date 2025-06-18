@@ -14,6 +14,6 @@ target_include_directories(
 
 target_link_libraries(
     ${target}
-    PUBLIC
+    PRIVATE
     osmium_dependencies
 )

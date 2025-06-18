@@ -6,6 +6,11 @@
 #include <iostream>
 
 namespace fms {
+    Bounds::Bounds(double min_lon, double min_lat, double max_lon, double max_lat)
+        : min(min_lon, min_lat)
+        , max(max_lon, max_lat)
+    { }
+
     Bounds::Bounds(const std::vector<Coordinates>& coords_vec) {
         // Finds the min and max coordinates from the input list and assigns them to their respective bounds.
         for (const auto& coords : coords_vec) {
@@ -13,8 +18,15 @@ namespace fms {
         }
     }
 
-    Bounds::Bounds(const std::string& bounds_string) {
-        bounds_from_string(bounds_string);
+    Bounds::Bounds(const std::string& bounds_string, const types::parse string_type) {
+        switch(string_type) {
+        case types::parse::FILENAME:
+            bounds_from_string(bounds_string);
+        case types::parse::WKT:
+            bounds_from_WKT(bounds_string);
+        default:
+            bounds_from_string(bounds_string);
+        }
     }
 
     /// Updates the bounds if the given coordinates are less than the current min or greater than the current max
@@ -40,6 +52,47 @@ namespace fms {
             max.lon = std::stod(base_match[3]);
             max.lat = std::stod(base_match[4]);
         }
+    }
+
+    void Bounds::bounds_from_WKT(const std::string& WKT) {
+        std::vector<Coordinates> coords_vec;
+
+        std::smatch base_match;
+        std::regex pattern(R"(-?\d+\.?\d*)");
+        std::sregex_iterator iter(WKT.begin(), WKT.end(), pattern);
+        std::sregex_iterator end;
+
+        for (; iter != end; ++iter) {
+            coords_vec.push_back({
+                std::stod(iter->str()),
+                std::stod(std::next(iter)->str())
+            });
+            ++iter;
+        }
+
+        for (const auto& coords : coords_vec) {
+            update_bounds(coords);
+        }
+    }
+
+    // Returns a bounds which is the intersection between this bounds and the bounds passed in as "other"
+    // If there is no intersection between the bounds, the diff of the resulting bounds will identical to this bounds.
+    Bounds Bounds::intersection(const Bounds& other) const {
+        return {
+            std::clamp(other.min.lon, min.lon, max.lon),
+            std::clamp(other.min.lat, min.lat, max.lat),
+            std::clamp(other.max.lon, min.lon, max.lon),
+            std::clamp(other.max.lat, min.lat, max.lat)
+        };
+    }
+
+    Bounds Bounds::operator-(const Bounds& other) const {
+        return {
+            min.lon - other.min.lon,
+            min.lat - other.min.lat,
+            max.lon - other.max.lon,
+            max.lat - other.max.lat
+        };
     }
 
     /// Returns true if all values of other bounds is within or equal to this bounds

@@ -19,4 +19,6 @@ target_link_libraries(
 
     chunk
     fms_utils
+    file_reader
+    file_system
 )

@@ -7,6 +7,7 @@ find_package(ZLIB REQUIRED)
 find_package(BZip2 REQUIRED)
 find_package(EXPAT REQUIRED)
 find_package(Threads REQUIRED)
+find_package(GDAL REQUIRED)
 
 add_library(
     osmium_dependencies
@@ -24,7 +25,6 @@ target_link_libraries(
 
 # fmt lib
 find_package(fmt REQUIRED)
-
 
 # Google Test
 find_package(GTest REQUIRED)
@@ -54,6 +54,8 @@ target_link_libraries(
     file_system
     file_reader
     requests
+    chunk
+    fms_utils
 )
 
 # Create the map service library
@@ -68,6 +70,7 @@ target_link_libraries(
     file_system
     file_reader
     requests
+    chunk
     fms_utils
 )
 
@@ -76,6 +79,14 @@ target_include_directories(
     INTERFACE
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
+
+target_include_directories(
+    four_map_service
+    INTERFACE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/extern
+)
+
 
 add_library(four::map_service ALIAS four_map_service)
 

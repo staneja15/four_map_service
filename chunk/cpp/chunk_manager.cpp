@@ -53,11 +53,11 @@ namespace fms {
 
         // Load chunks from file if they are within the chunk manager bounds
         for (const auto& map_directory : std::filesystem::directory_iterator(_data_path)) {
-            for (const auto& file : std::filesystem::directory_iterator(_data_path / map_directory.path().c_str())) {
+            for (const auto& file : std::filesystem::directory_iterator(_data_path / map_directory.path().c_str() / "height/")) {
                 const std::string filename = file.path().stem().c_str();
-                auto bounds = Bounds {filename};
+                auto bounds = Bounds {filename, types::parse::FILENAME};
                 if (chunk_manager_bounds >= bounds) {
-                    _chunks.emplace_back(std::make_shared<Chunk>(file));
+                    _chunks.emplace_back(std::make_shared<Chunk>(_data_path / map_directory.path().c_str(), file.path().stem().string() + file.path().extension().string()));
                 }
             }
         }

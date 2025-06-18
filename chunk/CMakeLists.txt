@@ -15,6 +15,11 @@ target_include_directories(
 
 target_link_libraries(
     ${target}
-    PUBLIC
+    PRIVATE
     fms_utils
+    osmium_dependencies
+    file_reader
+    file_system
+
+    gdal
 )

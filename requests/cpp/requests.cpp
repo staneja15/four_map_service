@@ -1,7 +1,10 @@
 #include "requests.h"
+#include "file_reader/file_reader.h"
+#include "file_system/file_system.h"
 
 #include <cstdlib>
 #include <thread>
+#include <execution>
 
 #include "extern/nlohmann/json.hpp"
 #include "extern/polyline_encoder/polyline_encoder.h"
@@ -26,8 +29,22 @@ namespace fms {
         }
     }
 
+    /// Downloads all the required map data in the provided map path
     void Requests::download_all_maps(const std::filesystem::path& data_path, const float chunk_width_degrees, const std::uint32_t chunk_width_units, const bool overwrite_data) {
         start_service();
+
+        const std::vector<std::filesystem::path> files = get_osm_files();
+        std::vector<std::shared_ptr<GeometryData>> geometry_data = {};
+        // Read area data for each file
+        for (const auto& file : files) {
+            auto fr = FileReader(file);
+
+            osmium::TagsFilter water_filter;
+            water_filter.add_rule(true, "natural", "water");
+            geometry_data.emplace_back(
+                std::make_shared<GeometryData>(fr.read_area_data(water_filter))
+            );
+        }
 
         for (const auto& map_bounds : get_bounds()) {
             MapGenerationInfo map_info = {
@@ -43,10 +60,27 @@ namespace fms {
             }
 
             std::vector<Chunk> chunks = get_elevation(map_info);
+            std::vector<std::thread> threads;
+            threads.reserve(chunks.size());
 
             for (const auto& chunk : chunks) {
-                auto path = data_path / map_bounds.to_string();
-                chunk.write_elevation_data(path, overwrite_data);
+                threads.emplace_back([&]() {
+                    auto path = data_path / map_bounds.to_string();
+                    chunk.write_elevation_data(path / "height", overwrite_data);
+
+                    for (auto geo_data : geometry_data) {
+                        chunk.write_land_data(path / "land", geo_data, overwrite_data);
+                    }
+                });
+            }
+
+            int i = 0;
+            for (auto& thread : threads) {
+                thread.join();
+
+                std::cout << fmt::format("joined thread {} / {} \n", i, threads.size());
+
+                ++i;
             }
         }
     }
@@ -94,14 +128,14 @@ namespace fms {
                 // Convert null values into 0.0f
                 auto height_array = json::parse(response.text)["height"];
                 std::ranges::for_each(height_array, [](const nlohmann::json& height) {
-                    return height.is_null() ? 0.0f : static_cast<float>(height);
+                    return height.is_null() ? -30.0f : static_cast<types::height_data_type>(height);
                 });
 
-                chunk.height_data = static_cast<std::vector<float>>(height_array);
+                chunk.height_data = static_cast<std::vector<types::height_data_type>>(height_array);
             });
         };
 
-        for (auto& thread: threads) {
+        for (auto& thread : threads) {
             thread.join();
         }
 
