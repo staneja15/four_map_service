@@ -64,6 +64,8 @@ add_library(
     INTERFACE
 )
 
+find_package(GEOS REQUIRED)
+
 target_link_libraries(
     four_map_service
     INTERFACE

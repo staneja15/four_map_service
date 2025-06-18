@@ -76,7 +76,6 @@ namespace fms {
     }
 
     // Returns a bounds which is the intersection between this bounds and the bounds passed in as "other"
-    // If there is no intersection between the bounds, the diff of the resulting bounds will identical to this bounds.
     Bounds Bounds::intersection(const Bounds& other) const {
         return {
             std::clamp(other.min.lon, min.lon, max.lon),
@@ -93,6 +92,13 @@ namespace fms {
             max.lon - other.max.lon,
             max.lat - other.max.lat
         };
+    }
+
+    bool Bounds::operator==(const Bounds& other) const {
+        return min.lon == other.min.lon
+            && min.lat == other.min.lat
+            && max.lon == other.max.lon
+            && max.lat == other.max.lat;
     }
 
     /// Returns true if all values of other bounds is within or equal to this bounds

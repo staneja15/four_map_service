@@ -25,7 +25,7 @@ namespace fms {
 
         explicit Chunk(std::uint32_t chunk_width, const Bounds& chunk_bounds);
 
-        explicit Chunk(const std::filesystem::path& map_file_path, const std::filesystem::path& file_name);
+        explicit Chunk(const std::filesystem::path& map_file_path, const std::filesystem::path& file_name, std::uint32_t chunk_width);
 
         [[nodiscard]] std::vector<Coordinates> generate_chunk_coordinates() const;
 

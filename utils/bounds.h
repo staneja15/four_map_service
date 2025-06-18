@@ -37,6 +37,8 @@ namespace fms {
 
         bool operator>=(const Bounds& other) const;
 
+        bool operator==(const Bounds& other) const;
+
         [[nodiscard]] Coordinates get_diffs() const;
 
         [[nodiscard]] std::string to_string() const;

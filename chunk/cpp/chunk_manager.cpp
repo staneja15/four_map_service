@@ -10,7 +10,7 @@ namespace fms {
         , _chunk_origin(std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN())
     { }
 
-    bool ChunkManager::update_position(Coordinates& position, float chunk_width_degrees, std::uint32_t chunk_width_n) {
+    bool ChunkManager::update_position(Coordinates& position, float chunk_width_degrees, std::uint32_t chunk_width_n, std::uint32_t chunk_width_units_n) {
         const auto new_origin = Chunk::get_chunk_origin(position, chunk_width_degrees);
 
         if (!check_chunk_has_changed(new_origin)) {
@@ -18,7 +18,7 @@ namespace fms {
         }
 
         _chunk_origin = new_origin;
-        _load_chunk_data(chunk_width_degrees, chunk_width_n);
+        _load_chunk_data(chunk_width_degrees, chunk_width_n, chunk_width_units_n);
 
         return true;
     }
@@ -31,7 +31,7 @@ namespace fms {
         return _chunks;
     }
 
-    void ChunkManager::_load_chunk_data(const float chunk_width_degrees, const std::uint32_t chunk_width_n) {
+    void ChunkManager::_load_chunk_data(const float chunk_width_degrees, const std::uint32_t chunk_width_n, std::uint32_t chunk_width_units_n) {
         _chunks = {};
 
         // Define the bounds of the chunk manager based on the input parameters
@@ -57,7 +57,13 @@ namespace fms {
                 const std::string filename = file.path().stem().c_str();
                 auto bounds = Bounds {filename, types::parse::FILENAME};
                 if (chunk_manager_bounds >= bounds) {
-                    _chunks.emplace_back(std::make_shared<Chunk>(_data_path / map_directory.path().c_str(), file.path().stem().string() + file.path().extension().string()));
+                    _chunks.emplace_back(
+                        std::make_shared<Chunk>(
+                            _data_path / map_directory.path().c_str(),
+                            file.path().stem().string() + file.path().extension().string(),
+                            chunk_width_units_n
+                        )
+                    );
                 }
             }
         }

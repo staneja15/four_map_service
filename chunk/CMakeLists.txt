@@ -21,5 +21,5 @@ target_link_libraries(
     file_reader
     file_system
 
-    gdal
+    geos_c
 )

@@ -4,9 +4,7 @@
 #include <fstream>
 #include <execution>
 
-#include <fmt/format.h>
-#include <gdal/ogr_geometry.h>
-
+#include <geos_c.h>
 
 /*
  *  Chunk Rules:
@@ -24,10 +22,10 @@ namespace fms {
     }
 
     /// Loads the chunk data directly from a file
-    Chunk::Chunk(const std::filesystem::path& map_file_path, const std::filesystem::path& file_name)
-        : height_data({})
-        , land_data({})
-    {
+    Chunk::Chunk(const std::filesystem::path& map_file_path, const std::filesystem::path& file_name, const std::uint32_t chunk_width)
+        : width(chunk_width)
+        , height_data({})
+        , land_data({}) {
         const std::filesystem::path height_dir = map_file_path / "height";
         const std::filesystem::path land_dir = map_file_path / "land";
         const std::string file_name_no_ext = file_name.stem().c_str();
@@ -35,7 +33,6 @@ namespace fms {
         read_elevation_data(height_dir / file_name);
         read_land_data(land_dir / file_name);
 
-        width = static_cast<std::uint32_t>(std::sqrt(height_data.size()));
         bounds = Bounds(file_name_no_ext, types::parse::FILENAME);
     }
 
@@ -77,9 +74,14 @@ namespace fms {
     /// Reads elevation data from a specified file path and stores it in the .height_data member
     void Chunk::read_elevation_data(const std::filesystem::path& filename) {
         read_binary(filename, height_data);
+
+        if (height_data.empty()) {
+            height_data = std::vector<types::height_data_type>(width * width, 0.0f);
+        }
     }
 
     void Chunk::write_land_data(const std::filesystem::path& path, std::shared_ptr<GeometryData>& geometry_data, bool overwrite_data) const {
+        initGEOS(nullptr, nullptr);
         const auto filename = std::filesystem::path(static_cast<std::string>(path / bounds.to_string()) + ".dat");
 
         if (exists(filename) && !overwrite_data) {
@@ -89,25 +91,29 @@ namespace fms {
         std::vector<Coordinates> coords = generate_chunk_coordinates();
         std::vector<types::land_data_type> type_mask;
         type_mask.resize(width * width);
-
-        OGRLinearRing ogr_bounds;
-        ogr_bounds.addPoint(bounds.min.lon, bounds.min.lat);  // Bottom left
-        ogr_bounds.addPoint(bounds.min.lon, bounds.max.lat);  // Top left
-        ogr_bounds.addPoint(bounds.max.lon, bounds.max.lat);  // Top right
-        ogr_bounds.addPoint(bounds.max.lon, bounds.min.lat);  // Bottom right
-        ogr_bounds.addPoint(bounds.min.lon, bounds.min.lat);  // Close ring
-
-        OGRPolygon box;
-        box.addRing(&ogr_bounds);
+        bool updated = false;
 
         // Add water to the type mask
         for (auto& WKT : geometry_data->water) {
-            OGRGeometry* multi_polygon = nullptr;
-            OGRGeometryFactory::createFromWkt(WKT.c_str(), nullptr, &multi_polygon);
 
-            const OGRBoolean disjoint = multi_polygon->Disjoint(&box);
+            GEOSGeometry* multipolygon = GEOSGeomFromWKT(WKT.c_str());
+            const GEOSPreparedGeometry* prepared = GEOSPrepare(multipolygon);
 
-            if (disjoint) {
+            const double coord_buffer[] = {
+                bounds.min.lon, bounds.min.lat,
+                bounds.min.lon, bounds.max.lat,
+                bounds.max.lon, bounds.max.lat,
+                bounds.max.lon, bounds.min.lat,
+                bounds.min.lon, bounds.min.lat,
+            };
+            constexpr size_t buffer_size = 5;
+            GEOSCoordSequence* seq = GEOSCoordSeq_copyFromBuffer(coord_buffer, buffer_size, 0, 0);
+
+            /* Takes ownership of sequence */
+            GEOSGeometry* geos_bounds = GEOSGeom_createLineString(seq);
+
+
+            if (GEOSDisjoint(multipolygon, geos_bounds)) {
                 // Early exit if the polygon does not overlap with the chunk boundaries
                 continue;
             }
@@ -126,21 +132,32 @@ namespace fms {
                 std::size_t lon_idx = diff.min.lon / lon_unit_size;
                 while (lon_idx < width) {
                     const std::size_t index = lat_idx * width + lon_idx;
-                    OGRPoint point(coords[index].lon, coords[index].lat);
-                    if (multi_polygon->Contains(&point)) {
+                    GEOSGeometry* point = GEOSGeom_createPointFromXY(coords[index].lon, coords[index].lat);
+
+                    if (GEOSPreparedContains(prepared, point)) {
                         type_mask[index] = 1;
+                        updated = true;
                     }
+
                     ++lon_idx;
                 }
                 ++lat_idx;
             }
+            GEOSPreparedGeom_destroy(prepared);
+            GEOSGeom_destroy(multipolygon);
         }
 
-        write_to_binary(filename, type_mask);
+        if (updated) {
+            write_to_binary(filename, type_mask);
+        }
     }
 
     void Chunk::read_land_data(const std::filesystem::path& filename) {
         read_binary(filename, land_data);
+
+        if (land_data.empty()) {
+            land_data = std::vector<types::land_data_type>(width * width, 0);
+        }
     }
 
     /// Calculate the bottom left coordinates of the current chunk
